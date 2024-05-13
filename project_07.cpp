@@ -1,3 +1,4 @@
+//Hangman game
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
