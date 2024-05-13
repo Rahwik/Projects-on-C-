@@ -14,7 +14,6 @@ void disp(char a[3][3])
 {
     cout<<"\n\t\tPress Esc anytime to quit the game\n\n\n\n";
     int i,j;
-    
     for(i=0;i<3;i++)
     {
         cout<<"\t\t\t\t-------------\n\t\t\t\t";
