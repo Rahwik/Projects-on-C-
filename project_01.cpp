@@ -5,56 +5,63 @@
 #include <process.h>
 #include <conio.h>
 using namespace std;
- 
+
+// Constants for defining the dimensions and elements in the game
 #define MAX 100
 #define WIDTH 77
 #define HEIGHT 22
 #define INIT_SNAKE_LENGTH 4
 #define FOOD 1
- 
 
+// Constants for identifying different elements in the game grid
 #define WALL -2
 #define SNAKE -1
 #define NOTHING 0
- 
+
+// Constants for defining directions
 #define RIGHT 0
 #define UP 1
 #define LEFT 2
 #define DOWN 3
 #define EXIT -1
+
+// Arrays for representing movement in different directions
 static int dx[5] = { 1, 0, -1, 0 };
 static int dy[5] = { 0, -1, 0, 1 };
- 
+
+// Global variables for storing user input and current item
 int input = RIGHT;    
 int item = NOTHING;
- 
+
+// Function to set cursor position in the console window
 void gotoxy(int column, int row)
 {
     HANDLE hStdOut;
     COORD coord;
- 
+
     hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
     if (hStdOut == INVALID_HANDLE_VALUE) return;
- 
+
     coord.X = column;
     coord.Y = row;
     SetConsoleCursorPosition(hStdOut, coord);
 }
- 
+
+// Function to clear the console screen
 void clearScreen()
 {
-    HANDLE                     hStdOut;
+    HANDLE hStdOut;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    DWORD                      count;
-    DWORD                      cellCount;
-    COORD                      homeCoords = { 0, 0 };
- 
+    DWORD count;
+    DWORD cellCount;
+    COORD homeCoords = { 0, 0 };
+
     hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
     if (hStdOut == INVALID_HANDLE_VALUE) return;
- 
+
     if (!GetConsoleScreenBufferInfo(hStdOut, &csbi)) return;
     cellCount = csbi.dwSize.X *csbi.dwSize.Y;
- 
+
     if (!FillConsoleOutputCharacter(
         hStdOut,       
         (TCHAR) ' ',   
@@ -62,7 +69,6 @@ void clearScreen()
         homeCoords,       
         &count            
         )) return;
- 
 
     if (!FillConsoleOutputAttribute(
         hStdOut,            
@@ -71,12 +77,11 @@ void clearScreen()
         homeCoords,           
         &count          
         )) return;
- 
-    
+
     SetConsoleCursorPosition(hStdOut, homeCoords);
 }
- 
 
+// Function to determine if the input directions are opposite
 int oppositeDirection(int input1, int input2)
 {
     if (input1 == LEFT && input2 == RIGHT)
@@ -87,15 +92,17 @@ int oppositeDirection(int input1, int input2)
         return 1;
     if (input1 == DOWN && input2 == UP)
         return 1;
- 
+
     return 0;
 }
- 
+
+// Structure to represent coordinates
 struct Coordinate
 {
     int x, y;
 };
- 
+
+// Class for the snake game
 class snake
 {
 private:
@@ -105,35 +112,43 @@ private:
     int ground[MAX][MAX];
     int foodCounter;
 public:
+    // Function to initialize the game ground
     void initGround();
+    // Function to initialize the snake
     void initSnake();
+    // Function to update the snake's position
     void updateSnake(int delay);
+    // Function to update the position of food
     void updateFood();
+    // Function to draw the initial game state
     void firstDraw();
+    // Function to get the food counter
     int getFoodCounter();
 };
- 
+
+// Method to initialize the game ground
 void snake::initGround()
 {
     int i, j;
     for (i = 0; i < MAX; i++)
         for (j = 0; j < MAX; j++)
             ground[i][j] = 0;
- 
+
     for (i = 0; i <= WIDTH + 1; i++)
     {
-        //top bottom wall
+        // Setting up top and bottom walls
         ground[0][i] = WALL;
         ground[HEIGHT + 1][i] = WALL;
     }
     for (i = 0; i <= HEIGHT + 1; i++)
     {
-        //right left wall
+        // Setting up side walls
         ground[i][0] = WALL;
         ground[i][WIDTH + 1] = WALL;
     }
 }
- 
+
+// Method to initialize the snake
 void snake::initSnake()
 {
     length = INIT_SNAKE_LENGTH;        
@@ -141,7 +156,7 @@ void snake::initSnake()
     body[0].y = HEIGHT / 2;
     direction = input;
     foodCounter = 0;
- 
+
     int i;
     for (i = 1; i < length; i++)
     {
@@ -152,7 +167,8 @@ void snake::initSnake()
     for (i = 0; i < length; i++)
         ground[body[i].y][body[i].x] = SNAKE;
 }
- 
+
+// Method to update the snake's position
 void snake::updateSnake(int delay)
 {
     int i;
@@ -162,19 +178,19 @@ void snake::updateSnake(int delay)
         prev[i].x = body[i].x;
         prev[i].y = body[i].y;
     }
- 
+
     if (input != EXIT && !oppositeDirection(direction, input))
         direction = input;
- 
+
     body[0].x = prev[0].x + dx[direction];       
     body[0].y = prev[0].y + dy[direction];      
- 
+
     if (ground[body[0].y][body[0].x] < NOTHING)
     {
         item = -1;
         return;
     }
- 
+
     if (ground[body[0].y][body[0].x] == FOOD)
     {
         length++;       
@@ -187,27 +203,27 @@ void snake::updateSnake(int delay)
         gotoxy(body[length - 1].x, body[length - 1].y);        
         cout << " ";                       
     }
- 
+
     for (i = 1; i < length; i++)
     {
         body[i].x = prev[i - 1].x;    
         body[i].y = prev[i - 1].y;    
     }
- 
+
     gotoxy(body[1].x, body[1].y);
     cout << "+";                    
     gotoxy(body[0].x, body[0].y);
     cout << "O";                   
- 
 
     for (i = 0; i < length; i++)
         ground[body[i].y][body[i].x] = SNAKE;
- 
+
     Sleep(delay-10);
- 
+
     return;
 }
- 
+
+// Method to update the position of food
 void snake::updateFood()
 {
     int x, y;
@@ -216,13 +232,14 @@ void snake::updateFood()
         x = rand() % WIDTH + 1;
         y = rand() % HEIGHT + 1;
     } while (ground[y][x] != NOTHING);
- 
+
     ground[y][x] = FOOD;
     foodCounter++;
     gotoxy(x, y);
     cout << "$";   
 }
- 
+
+// Method to draw the initial game state
 void snake::firstDraw()
 {
     clearScreen();
@@ -260,12 +277,14 @@ void snake::firstDraw()
         cout << endl;
     }
 }
- 
+
+// Method to get the food counter
 int snake::getFoodCounter()
 {
     return foodCounter;
 }
- 
+
+// Thread method for user input
 void userInput(void* id)
 {
     do
@@ -280,11 +299,12 @@ void userInput(void* id)
         case 27:        input = EXIT ; break;
         }
     } while (input != EXIT && item >= 0);
- 
+
     _endthread();
     return;
 }
- 
+
+// Main function
 int main()
 {
     int delay = 50;
@@ -302,13 +322,14 @@ int main()
         if (item == FOOD)
             nagini.updateFood();
     } while (item >= 0 && input != EXIT);
- 
+
+    // Game over message
     gotoxy(WIDTH / 2 - 5, HEIGHT / 2 - 2);
     cout << "GAME OVER";
     gotoxy(WIDTH / 2 - 8, HEIGHT / 2 + 2);
     cout << "Your score is " << nagini.getFoodCounter() - 1 << "!" << endl;
     gotoxy(WIDTH / 2, HEIGHT / 2);
- 
+
     _getch();
     return 0;
 }
